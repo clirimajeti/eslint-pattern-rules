@@ -52,7 +52,7 @@ Each rule is exactly two files, both prefixed `gen-` so generated rules stay dis
 <rules-dir>/gen-<name>.test.js
 ```
 
-`<rules-dir>` is the existing custom-rules folder, or else `eslint-rules/` at the repo root. The rule id is `local/gen-<name>`. Hand-written rules and any rules index stay as they are; give the user the index line to add.
+`<rules-dir>` is the existing custom-rules folder, or else `eslint-rules/` at the repo root. The rule id is `local/gen-<name>`. Hand-written rules stay as they are. If the folder has a rules index, add the new rule to it in the index's existing style.
 
 Write plain JS in the project's module format, one convention per rule. Comment only where the logic is non-obvious, and leave out doc blocks and `meta.docs`. The gotchas that bite here:
 - `meta.schema` is always set (`[]` for no options): v9 rejects options a rule has no schema for.
@@ -73,7 +73,9 @@ Build the tests from the real code:
 
 Run tools from `node_modules/.bin/` or with `npx --no-install`.
 
-The ESLint config stays as it is. The report carries the snippet that registers the rule: in flat config, `plugins: {local: {rules: {'gen-<name>': rule}}}` scoped by `files`. A legacy `.eslintrc` loads it through `eslint-plugin-local-rules`.
+Register the rule in the ESLint config yourself, without asking: it is part of building the rule, not a design choice. Add only what the rule needs and leave every other entry as it is:
+- **Flat config**: reuse the existing local plugin if there is one (an index or `plugins: {local: ...}` entry), otherwise add `plugins: {local: {rules: {'gen-<name>': rule}}}`. Enable `'local/gen-<name>'` at the agreed severity and options, in a config object scoped by the agreed `files`.
+- **Legacy `.eslintrc`**: register it through the project's existing local-rules mechanism (`eslint-plugin-local-rules`, `--rulesdir`). When there is none, the registration would need a new package, so leave the config as it is and put the snippet and its install command in the report.
 
 ## 5. Verify
 
@@ -83,14 +85,15 @@ The ESLint config stays as it is. The report carries the snippet that registers 
    node <skill-dir>/scripts/try-rule.mjs <rules-dir>/gen-<name>.js [paths...] [--options '<json>'] [--fix-dry-run]
    ```
 3. Account for every hit: each one is a violation under the agreed boundary. A false positive becomes a `valid` test and a rule fix, then a rerun. Report any file type the "Parsers" line lists as skipped or only partly checked.
+4. Run the project's own ESLint on one flagged file, to confirm the config loads and reports `local/gen-<name>`.
 
-Done when the tests pass and every hit is accounted for.
+Done when the tests pass, every hit is accounted for, and the project's ESLint reports the rule.
 
 ## 6. Report
 
 Keep it short:
 - each rule, with its hit count and a few hits
-- the config snippet
+- the config change, as a short diff
 - any install or parser command
 - the conventions you didn't build
 - the scan log, if you scanned
