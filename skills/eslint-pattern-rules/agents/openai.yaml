@@ -1,0 +1,3 @@
+interface:
+  display_name: "ESLint Pattern Rules"
+  short_description: "Turn codebase conventions into custom ESLint rules"

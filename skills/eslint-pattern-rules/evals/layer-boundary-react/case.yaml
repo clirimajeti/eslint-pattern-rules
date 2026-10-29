@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: layer-boundary-react
+expected_outcome: |
+  A custom ESLint rule that stops components from importing feature api modules directly (they must go through hooks), configured through options rather than hardcoded folder names, handling relative and @/ alias imports, with passing tests and docs, flagging UserCard.tsx and OrderBadge.tsx in the real code.
+context:
+  scaffold_script: place-files.sh
