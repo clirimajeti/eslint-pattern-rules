@@ -44,10 +44,10 @@ Ask in your own words, or name it:
 - "Which of our patterns or ADRs could become lint rules?"
 - "We agreed to stop mixing `await` with `.then()` chains. Enforce it."
 
-### 3. Register the rule
+### 3. Run your linter
 
-You get two files in `eslint-rules/` and a config snippet.
-Paste the snippet into your ESLint config, and the convention is enforced from the next lint run on.
+The rule lands in `eslint-rules/`, already registered in your ESLint config.
+The convention is enforced from the next lint run on.
 
 ## Why This Skill Exists
 
@@ -106,11 +106,12 @@ Now a small change has become a dependency upgrade nobody asked for.
 **The Fix**: The skill has a hard footprint.
 It writes exactly two files per rule, `eslint-rules/gen-<name>.js` and `eslint-rules/gen-<name>.test.js`.
 The `gen-` prefix keeps generated rules apart from hand-written ones.
+In your ESLint config it adds only the entry that enables the rule, scoped to the files it applies to.
 It leaves alone:
 
 - **`package.json` and your lockfile**, whenever ESLint is already installed, directly or through another tool.
   Only a project with no ESLint at all gets `eslint` and the parsers it needs, pinned to exact versions.
-- **Your ESLint config.** You get the snippet to register the rule.
+- **The rest of your ESLint config.**
 - **Your source files and hand-written rules.**
 
 ### #4: Nobody Trusts A Noisy Rule
@@ -141,8 +142,8 @@ This skill writes them down in the one place they can't be ignored.
 3. **Lets you pick** the candidates in a multi-select dialog, or builds the low-risk and ADR-backed ones automatically, depending on `config.json`.
 4. **Asks you the design questions**: boundary, scope, options, autofix, severity.
    Each comes with a recommended answer and a real example from your code.
-5. **Writes the rule and its test.**
-6. **Verifies** the rule: its tests pass, and every hit it reports on your real code is accounted for.
+5. **Writes the rule and its test**, and registers the rule in your ESLint config.
+6. **Verifies** the rule: its tests pass, every hit it reports on your real code is accounted for, and your own ESLint picks it up.
 
 ### Configuration
 
