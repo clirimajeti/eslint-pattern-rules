@@ -1,0 +1,8 @@
+{
+  "mode": "ask",
+  "auto": {
+    "maxRisk": "low",
+    "maxFlaggedFiles": 3,
+    "adrBacked": "auto"
+  }
+}

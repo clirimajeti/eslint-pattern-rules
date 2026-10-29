@@ -1,0 +1,13 @@
+{
+  "name": "eslint-pattern-rules",
+  "version": "0.1.0",
+  "description": "Turn a codebase's own conventions into custom ESLint rules with RuleTester tests. Framework-agnostic, config-driven, asks before it builds.",
+  "author": {
+    "name": "clirimajeti",
+    "url": "https://github.com/clirimajeti"
+  },
+  "repository": "https://github.com/clirimajeti/eslint-pattern-rules",
+  "license": "MIT",
+  "keywords": ["eslint", "lint", "custom-rules", "code-quality", "clean-code", "solid", "skills"],
+  "skills": ["./skills/eslint-pattern-rules"]
+}

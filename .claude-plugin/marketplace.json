@@ -1,0 +1,17 @@
+{
+  "name": "eslint-pattern-rules",
+  "owner": {
+    "name": "clirimajeti",
+    "url": "https://github.com/clirimajeti"
+  },
+  "description": "A skill that turns a codebase's own conventions into custom ESLint rules.",
+  "plugins": [
+    {
+      "name": "eslint-pattern-rules",
+      "source": "./",
+      "description": "Turn a codebase's own conventions into custom ESLint rules with RuleTester tests.",
+      "category": "engineering",
+      "keywords": ["eslint", "lint", "custom-rules", "code-quality"]
+    }
+  ]
+}
