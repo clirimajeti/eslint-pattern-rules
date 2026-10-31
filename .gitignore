@@ -2,3 +2,5 @@
 node_modules/
 skills/*/evals/results/
 .idea/
+.lavish/
+notes/

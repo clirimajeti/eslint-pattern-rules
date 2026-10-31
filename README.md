@@ -113,6 +113,7 @@ It leaves alone:
   Only a project with no ESLint at all gets `eslint` and the parsers it needs, pinned to exact versions.
 - **The rest of your ESLint config.**
 - **Your source files and hand-written rules.**
+- **Your agent docs**, except the lines you approve deleting or shortening once a rule enforces them.
 
 ### #4: Nobody Trusts A Noisy Rule
 
@@ -135,15 +136,21 @@ This skill writes them down in the one place they can't be ignored.
 
 ### How It Works
 
-1. **Detects your setup**: ESLint version (v8 or v9 flat), config format, parsers, path aliases, test runner, an existing custom-rules folder, and decision records (ADRs).
+1. **Detects your setup**: ESLint version (v8 or v9 flat), config format, parsers, path aliases, test runner, an existing custom-rules folder, decision records (ADRs), and agent docs (CLAUDE.md, AGENTS.md, Copilot and Cursor instructions).
 2. **Finds the convention.**
    Either the one you named, with its real examples and every violation, or a scan for candidates.
-   The scan skips anything already enforced by an existing rule or architecture test.
-3. **Lets you pick** the candidates in a multi-select dialog, or builds the low-risk and ADR-backed ones automatically, depending on `config.json`.
+   The scan looks at your code, your ADRs and the rules written as prose in your agent docs.
+   It also checks a list of well-known clean-code, bug-prevention, security and test rules your project doesn't use yet, with how many places each would flag today.
+   It skips anything already enforced by an existing rule or architecture test.
+3. **Lets you pick** the candidates in a multi-select dialog.
+   Nothing is built until you pick it, unless you opt in to auto mode in `config.json`.
+   Well-known rules from outside your project are always offered, never built automatically.
 4. **Asks you the design questions**: boundary, scope, options, autofix, severity.
    Each comes with a recommended answer and a real example from your code.
 5. **Writes the rule and its test**, and registers the rule in your ESLint config.
 6. **Verifies** the rule: its tests pass, every hit it reports on your real code is accounted for, and your own ESLint picks it up.
+7. **Offers to clean up your agent docs**: for each line the new rule now enforces, you choose to delete it, shorten it to a pointer, or keep it.
+   Fewer prose rules means less context every agent session has to read.
 
 ### Configuration
 
@@ -151,15 +158,15 @@ This skill writes them down in the one place they can't be ignored.
 A `.eslint-pattern-rules.json` at your project root overrides them per project.
 
 ```json
-{ "mode": "ask", "auto": { "maxRisk": "low", "maxFlaggedFiles": 3, "adrBacked": "auto" } }
+{ "mode": "ask", "auto": { "maxRisk": "low", "maxFlaggedFiles": 3, "adrBacked": "ask" } }
 ```
 
 | Key | Meaning |
 |---|---|
-| `mode` | `"ask"`: you pick every rule. `"auto"`: rules within the `auto` limits are built without asking. |
+| `mode` | `"ask"` (default): you pick every rule. `"auto"` (opt-in): rules within the `auto` limits are built without asking. |
 | `auto.maxRisk` | Highest risk built without asking: `"low"` or `"medium"`. High-risk rules always ask. |
 | `auto.maxFlaggedFiles` | Most files a rule may report on day one and still be built without asking. |
-| `auto.adrBacked` | `"auto"`: a rule an ADR asks for, but nothing enforces yet, is built without asking in either mode. `"ask"`: it goes to you like the rest. |
+| `auto.adrBacked` | `"ask"` (default): a rule an ADR or agent doc asks for goes to you like the rest. `"auto"` (opt-in): it is built without asking in either mode, unless it is high risk. |
 
 Any design answer the skill gives on your behalf is shown to you for review at the end.
 
@@ -172,7 +179,8 @@ skills/eslint-pattern-rules/
 ├── agents/openai.yaml          # Codex picker metadata
 ├── references/
 │   ├── discovery.md            # candidate scan, coverage, risk, selection
-│   └── pattern-catalog.md      # signals to probe, with built-in rules to check first
+│   ├── pattern-catalog.md      # signals to probe, with built-in rules to check first
+│   └── general-rules.md        # well-known rules to suggest when the project lacks them
 ├── scripts/try-rule.mjs        # runs one rule over real code without touching your config
 └── evals/                      # a test case for `claude plugin eval`
 ```

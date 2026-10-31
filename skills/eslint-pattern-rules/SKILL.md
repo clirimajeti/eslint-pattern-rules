@@ -1,13 +1,16 @@
 ---
 name: eslint-pattern-rules
-description: Turn a codebase's own conventions into custom ESLint rules with RuleTester tests. Use when the user wants a custom ESLint rule or local plugin, asks which of their patterns or ADRs could become lint rules, or wants to enforce a convention the code mostly follows.
+description: Turn a codebase's own conventions into custom ESLint rules with RuleTester tests, and suggest well-known ESLint rules it is missing. Use when the user wants a custom ESLint rule or local plugin, asks which of their patterns, ADRs or CLAUDE.md / AGENTS.md instructions could become lint rules, asks which clean-code, bug-prevention, security or test rules the project lacks, or wants to enforce a convention the code mostly follows.
 ---
 
 # ESLint Pattern Rules
 
 A **convention** is what the codebase already mostly does, or what one of its decision records chose. This skill encodes one convention per rule, so the majority pattern becomes the only pattern. The project's code and decisions are the source of truth, and the user settles every design choice.
+Nothing is written until the user has picked it.
 
-Count and locate with `rg -c` / `rg -n`, and open a file only for details a count can't give.
+A rule also saves context: a convention written as prose in CLAUDE.md or AGENTS.md is read by every agent session, while a rule costs nothing until it is broken.
+
+Count and locate with `rg -c` / `rg -n`, always with a path (in scripts, `rg` without one waits on stdin), and open a file only for details a count can't give.
 
 ## 1. Detect the setup
 
@@ -15,16 +18,18 @@ Look each of these up rather than asking:
 - **ESLint version**: `node -p "require('eslint/package.json').version"`. v9+ uses the flat APIs, v8 the legacy ones.
 - **Config file**, **module format**, **installed parsers**, `tsconfig.json` `paths`, and **test runner**.
 - **An existing custom-rules folder**: if there is one, follow its layout and style.
-- **Decision records**: `docs/adr/`, `docs/decisions/`, `notes/decisions/`, `ADR-*.md`, CLAUDE.md, CONTRIBUTING.
+- **Decision records**: `docs/adr/`, `docs/decisions/`, `notes/decisions/`, `ADR-*.md`, CONTRIBUTING.
+- **Agent docs**: every `CLAUDE.md`, `AGENTS.md` and `GEMINI.md` in the repo, `.github/copilot-instructions.md`, `.github/instructions/*.md`, `.cursor/rules/`, `.cursorrules`, `.windsurfrules`.
 
 Done when you can state each of these in one line.
 
 ## 2. Pick the convention
 
 - **The user named one:** find 2-3 real examples of it and every violation. They become the test cases.
-- **The user wants candidates:** read [`references/discovery.md`](references/discovery.md) and follow it. It covers the scan, what is already enforced, risk, the config-driven auto mode, and the selection dialog.
+  Note every agent-doc line that states the same convention, for step 6.
+- **The user wants candidates:** read [`references/discovery.md`](references/discovery.md) and follow it. It covers the scan of code, decision records and agent docs, the general rules from [`references/general-rules.md`](references/general-rules.md), what is already enforced, risk, the opt-in auto mode, and the selection dialog.
 
-A built-in rule wins when it can express the convention (`no-restricted-syntax`, `no-restricted-imports`, `max-params`, or a rule from an installed plugin). Hand the user its exact config and move on. A custom rule earns its place when the logic needs scope, paths, options, a tailored message or a fix.
+A built-in rule wins when it can express the convention (`no-restricted-syntax`, `no-restricted-imports`, `max-params`, or a rule from an installed plugin). Offer its exact config as the candidate. Once picked, add it to the ESLint config, scoped by `files`, and verify it with the project's own ESLint run instead of steps 4 and 5. A custom rule earns its place when the logic needs scope, paths, options, a tailored message or a fix.
 
 Done when every convention you will build has its good examples and its full violation list.
 
@@ -39,7 +44,7 @@ For each rule, work through these, skipping whatever the code already answers:
 
 Ask with `AskUserQuestion`, in rounds of up to 4 questions whose prerequisites are settled. Put your recommended answer first and label it "(Recommended)". Show a real code example in the question or in an option's `preview`. Without the tool, ask the same rounds as a numbered list in chat.
 
-When the rule was selected automatically, or nobody can answer, answer with your recommendations and take the **safer** side: `suggest` over `fix`, `warn` over `error`, the narrower scope. Step 6 puts these answers to the user.
+When the rule was selected automatically, or nobody can answer, answer with your recommendations and take the **safer** side: `suggest` over `fix`, `warn` over `error`, the narrower scope. Step 7 puts these answers to the user.
 
 Done when every question has an answer and you know who gave it.
 
@@ -89,13 +94,30 @@ Register the rule in the ESLint config yourself, without asking: it is part of b
 
 Done when the tests pass, every hit is accounted for, and the project's ESLint reports the rule.
 
-## 6. Report
+## 6. Offer the agent-doc cleanup
+
+Only for a rule built or enabled in this run and verified (a custom rule through step 5, a config change through the project's own ESLint run), and only for the agent-doc lines that state the convention it now enforces.
+Ask one `AskUserQuestion` per rule, quoting each line with its file and line number:
+- **Delete the line**: recommended when the fix is local and mechanical, so the rule's message alone tells an agent what to do.
+- **Shorten it to a pointer**, such as `Data fetching: hooks only (enforced by local/gen-<name>).`: recommended when the convention shapes code before it is written, so an agent that never saw it would build the wrong thing and redo it.
+- **Keep it as it is.**
+
+Before recommending a delete, make sure the rule's message carries what the line said, plus the ADR link if there is one.
+Edit the doc only as answered, and never touch a line no verified rule covers.
+With nobody to answer, change no doc and list the lines in the report.
+
+Done when every covered line is answered or listed.
+
+## 7. Report
 
 Keep it short:
 - each rule, with its hit count and a few hits
 - the config change, as a short diff
 - any install or parser command
+- the agent-doc lines deleted, shortened or kept, with a rough token saving (removed characters / 4)
+- the general rules offered and not picked, and those that need a plugin
 - the conventions you didn't build
 - the scan log, if you scanned
 
 If you answered design questions on the user's behalf, close with one `AskUserQuestion` round that presents those answers, with yours as the first option. Apply the changes, then rerun step 5 for that rule.
+With nobody to answer, end the report with those answers as a numbered list instead, each with its reason and the alternative.

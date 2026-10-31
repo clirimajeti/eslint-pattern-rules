@@ -3,6 +3,6 @@
   "auto": {
     "maxRisk": "low",
     "maxFlaggedFiles": 3,
-    "adrBacked": "auto"
+    "adrBacked": "ask"
   }
 }
