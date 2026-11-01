@@ -32,6 +32,7 @@ A type-aware rule (typescript-eslint `recommendedTypeChecked` rules and the like
    A line that applies only to another part of the stack (backend lines in a frontend run) is out of scope.
    A line a lint rule can check is a candidate.
    A line about process, tone or tools ("run the tests before committing") is not.
+5. **Count suppression comments per rule** (`eslint-disable`, `@ts-expect-error`, `@Suppress`, `# noqa`, `ast-grep-ignore`, `//nolint`). Three or more for one rule mean the config fights the code: a `contradicted` candidate with "relax the rule here" or "fix the code" as the options.
 
 On a large repo, split the scan by top-level folder, with one subagent per folder when serial scanning is too slow.
 Keep a **scan log** (signal, counts, verdict) so the user can tell a quiet codebase from a shallow scan.
@@ -52,12 +53,14 @@ Done when every general rule is a candidate, already covered, or reported as nee
 **Coverage:**
 - `covered`: something in the map already enforces it.
   It appears only as a note.
-- `built, not enabled`: a rule for it exists but is switched off or only runs in an optional config.
+- `built, not enabled`: a rule for it exists but only runs in an optional config or in some folders.
   The candidate is enabling it, with its current hit count, not a new rule.
+  A rule from an installed plugin that no enabled preset turns on is `general, not used`, offered with its hit count.
+- `switched off`: the config turns the rule off on purpose (`'off'` or `0`, often with a comment). Offer it after the other project candidates, with the reason if the config gives one, since someone decided against it.
 - `documented, not enforced`: a decision record or an agent doc asks for it and nothing fails when it is broken.
 - `implicit`: the code mostly follows it, with nothing written or enforced.
 - `general, not used`: a rule from the general list that the project does not run.
-- `contradicted`: the docs say X and the code mostly does Y, or the docs ask for something a lint rule or its config forbids.
+- `contradicted`: the docs say X and the code mostly does Y, a cluster of suppression comments fights a rule,, or the docs ask for something a lint rule or its config forbids.
   Raise it as a question to the user and build neither side.
 
 **Risk:**

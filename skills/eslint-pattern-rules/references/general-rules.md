@@ -11,6 +11,17 @@ npx --no-install eslint --rule '{"complexity": ["warn", 10]}' --rule '{"max-para
   || true; node -e 'const r=require("/tmp/general.json");const by={};for(const f of r)for(const m of f.messages){(by[m.ruleId]??=new Set()).add(f.filePath);(by[m.ruleId].n=(by[m.ruleId].n||0)+1)}for(const[k,v]of Object.entries(by))console.log(k,v.n,"hits in",v.size,"files")'
 ```
 
+`--rule` only works for core rules: for a plugin rule (`@typescript-eslint/*`, `@angular-eslint/*`, `vue/*`) ESLint cannot find the plugin and crashes.
+For those, write a scratch config outside the repo that imports the project's config and appends one object with the candidate rules, and run it with `--config`:
+
+```js
+// <scratch>/probe.config.mjs
+import base from '<project>/eslint.config.js'; // or .mjs / .ts, whatever the project uses
+export default [...base, { basePath: '<project>', rules: { '@typescript-eslint/no-floating-promises': 'warn' } }];
+```
+
+`basePath` (ESLint 9.30+) keeps the project's `files` and `ignores` relative to the project root; on older versions, put the probe in a git-ignored folder inside the project instead.
+
 Write the JSON to a scratch file, not the repo.
 When the output is empty or not JSON, ESLint crashed: rerun without `--format json` and read the first error.
 
@@ -67,6 +78,17 @@ Code an agent can read whole and change locally costs fewer tokens per task.
 | No raw HTML | `vue/no-v-html`, `react/no-danger`, `svelte/no-at-html-tags` | the framework plugin |
 | Safe external links | `vue/no-template-target-blank`, `react/jsx-no-target-blank` | the framework plugin |
 | No secrets in source | a secret scanner in CI (gitleaks, trufflehog) | report only |
+
+## Framework rules from installed plugins
+
+Offer these only when the plugin is installed and no enabled preset turns them on.
+
+| Rule | Check first | Needs |
+|---|---|---|
+| Signals over plain fields for component state | `@angular-eslint/prefer-signals` | `angular-eslint` |
+| Signals are called in templates and code | `@angular-eslint/no-uncalled-signals` | `angular-eslint` |
+| `inject()` over constructor injection | `@angular-eslint/prefer-inject` | `angular-eslint` |
+| Standalone components | `@angular-eslint/prefer-standalone` | `angular-eslint` |
 
 ## Test hygiene
 

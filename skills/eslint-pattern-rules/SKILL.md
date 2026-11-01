@@ -10,14 +10,17 @@ Nothing is written until the user has picked it.
 
 A rule also saves context: a convention written as prose in CLAUDE.md or AGENTS.md is read by every agent session, while a rule costs nothing until it is broken.
 
-Count and locate with `rg -c` / `rg -n`, always with a path (in scripts, `rg` without one waits on stdin), and open a file only for details a count can't give.
+Count and locate with `rg -c` / `rg -n`, always with a path (in scripts, `rg` without one waits on stdin) (with several `-g` globs the last matching one wins, so put exclusions like `-g '!*.spec.ts'` after the includes), and open a file only for details a count can't give.
 
 ## 1. Detect the setup
 
 Look each of these up rather than asking:
 - **ESLint version**: `node -p "require('eslint/package.json').version"`. v9+ uses the flat APIs, v8 the legacy ones.
+  When `node_modules` is missing, ask before installing dependencies (`npm ci --ignore-scripts` with a lockfile, `npm install --ignore-scripts --no-package-lock` without one, both git-ignored); without them, report every count that needs ESLint as "not counted".
 - **Config file**, **module format**, **installed parsers**, `tsconfig.json` `paths`, and **test runner**.
 - **An existing custom-rules folder**: if there is one, follow its layout and style.
+- **Generated code**: generator markers such as `.yo-rc.json`, `.jhipster/`, `.openapi-generator/`, `@Generated`, or `DO NOT EDIT` headers, and the source folders each generator owns.
+  A rule still guards new code there, but existing hits are fixed in the generator's template or blueprint, not by hand: say so for each hit in generated code.
 - **Decision records**: `docs/adr/`, `docs/decisions/`, `notes/decisions/`, `ADR-*.md`, CONTRIBUTING.
 - **Agent docs**: every `CLAUDE.md`, `AGENTS.md` and `GEMINI.md` in the repo, `.github/copilot-instructions.md`, `.github/instructions/*.md`, `.cursor/rules/`, `.cursorrules`, `.windsurfrules`.
 
@@ -44,7 +47,7 @@ For each rule, work through these, skipping whatever the code already answers:
 
 Ask with `AskUserQuestion`, in rounds of up to 4 questions whose prerequisites are settled. Put your recommended answer first and label it "(Recommended)". Show a real code example in the question or in an option's `preview`. Without the tool, ask the same rounds as a numbered list in chat.
 
-When the rule was selected automatically, or nobody can answer, answer with your recommendations and take the **safer** side: `suggest` over `fix`, `warn` over `error`, the narrower scope. Step 7 puts these answers to the user.
+When the rule was selected automatically, or nobody can answer, answer with your recommendations and take the **safer** side: `suggest` over `fix` and the narrower scope. Severity: `error` when the rule has no open hits, because nothing old breaks and agent feedback loops that block only on errors will show it; with open hits, `warning` plus a promotion plan, and say in the report that loops blocking on errors will not show the rule until it is promoted. Step 7 puts these answers to the user.
 
 Done when every question has an answer and you know who gave it.
 
