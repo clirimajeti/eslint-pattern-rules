@@ -36,7 +36,7 @@ Done when every convention you will build has its good examples and its full vio
 ## 3. Settle the design with the user
 
 For each rule, work through these, skipping whatever the code already answers:
-- **Boundary**: what is flagged. Test it against the real edge cases: nested callbacks, test files, generated code, re-exports, type-only imports, JSX/templates, computed access (`p["then"]`).
+- **Boundary**: what is flagged. Test it against the real edge cases: nested callbacks, test files, generated code, re-exports, type-only imports, JSX/templates, computed access (`p["then"]`), and fully qualified or global-qualified access (`globalThis.Date.now()`, `window.fetch(...)`).
 - **Scope**: which files. Set this through the config's `files` globs. Use rule options only when the logic itself depends on paths (layer A must not import layer B). Folder names live in config or options, so the rule fits any layout.
 - **Options**: only the knobs needed today. Each one gets a JSON `schema` and a default that fits the project, such as aliases read from `tsconfig.json`.
 - **Fix**: `fix` when behavior is provably unchanged, `suggest` when a human should confirm, none otherwise.
@@ -100,6 +100,8 @@ Only for a rule built or enabled in this run and verified (a custom rule through
 Ask one `AskUserQuestion` per rule, quoting each line with its file and line number:
 - **Delete the line**: recommended when the fix is local and mechanical, so the rule's message alone tells an agent what to do.
 - **Shorten it to a pointer**, such as `Data fetching: hooks only (enforced by local/gen-<name>).`: recommended when the convention shapes code before it is written, so an agent that never saw it would build the wrong thing and redo it.
+  The pointer goes where the agent will load it: a `CLAUDE.md` in the folder the rule applies to, or an instructions file with an `applyTo` glob for those paths.
+  A pointer left only in a file the agent has to follow a link to read is not seen up front, so propose the place in the same question.
 - **Keep it as it is.**
 
 Before recommending a delete, make sure the rule's message carries what the line said, plus the ADR link if there is one.
@@ -114,9 +116,11 @@ Keep it short:
 - each rule, with its hit count and a few hits
 - the config change, as a short diff
 - any install or parser command
-- the agent-doc lines deleted, shortened or kept, with a rough token saving (removed characters / 4)
+- the agent-doc lines deleted, shortened or kept, with the doc tokens removed (characters / 4), split into always-loaded and on-demand lines, since only always-loaded lines cost tokens in every session
+- the bigger saving is usually not the doc tokens but the fix rounds a rule avoids: say so instead of presenting the character count as the benefit
 - the general rules offered and not picked, and those that need a plugin
 - the conventions you didn't build
+- whether agents get the rule's feedback while they work: when nothing lints an agent's edits before the session ends (a hook, or an instruction to run the linter before finishing), recommend one, for example the `codemyrules` feedback loop; without it a broken rule only surfaces in CI, after the session
 - the scan log, if you scanned
 
 If you answered design questions on the user's behalf, close with one `AskUserQuestion` round that presents those answers, with yours as the first option. Apply the changes, then rerun step 5 for that rule.

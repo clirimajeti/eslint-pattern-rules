@@ -27,6 +27,8 @@ A type-aware rule (typescript-eslint `recommendedTypeChecked` rules and the like
 3. **Read the decision records** for conventions they ask for.
 4. **Read the agent docs** (the list in SKILL.md step 1), plus the docs they link to or import (`@file` lines, Markdown links to repo files), one level deep, for rule-like lines: "always", "never", "must", "don't", "use X instead of Y", "X goes through Y".
    Keep each line's file and line number, so step 6 of SKILL.md can offer to clean it up once a rule enforces it.
+   Mark each line **always loaded** (a root `CLAUDE.md`, `AGENTS.md` or `GEMINI.md`, the files those import with `@file`, `.github/copilot-instructions.md`) or **on demand** (linked files, folder-level `CLAUDE.md`, instructions with an `applyTo` glob).
+   Always-loaded lines cost tokens in every session; on-demand lines mostly gain enforcement.
    A line that applies only to another part of the stack (backend lines in a frontend run) is out of scope.
    A line a lint rule can check is a candidate.
    A line about process, tone or tools ("run the tests before committing") is not.
@@ -93,7 +95,7 @@ Split the candidates:
   Its description is the why-sentence plus the flagged files and the risk.
   A built-in config candidate is labelled by the rule plus its purpose, such as `no-restricted-imports: toasts only via useToast`.
   Each question stands on its own ("Which of these rules should I generate?").
-  Order them by coverage (`documented, not enforced` and `built, not enabled` first), then by risk, then by fewest flagged files.
+  Order them by coverage (`documented, not enforced` and `built, not enabled` first), then always-loaded agent-doc lines before on-demand ones, then by risk, then by fewest flagged files.
   Offer at most 16 in one call, and list the rest in the report.
 - **Contradictions**: one single-select question each, with "update the doc to match the code" and "enforce the doc" as the options.
 - **General**: every `general, not used` candidate, always offered and never built automatically, in a separate call of its own questions ("Which of these rules your project doesn't use yet should I add?").
