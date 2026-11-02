@@ -44,10 +44,14 @@ For each rule, work through these, skipping whatever the code already answers:
 - **Options**: only the knobs needed today. Each one gets a JSON `schema` and a default that fits the project, such as aliases read from `tsconfig.json`.
 - **Fix**: `fix` when behavior is provably unchanged, `suggest` when a human should confirm, none otherwise.
 - **Message, type, severity, name** (`gen-<name>`).
+- **Layer**: the main config, or the suggestions layer (step 4) when the existing code breaks the rule.
 
 Ask with `AskUserQuestion`, in rounds of up to 4 questions whose prerequisites are settled. Put your recommended answer first and label it "(Recommended)". Show a real code example in the question or in an option's `preview`. Without the tool, ask the same rounds as a numbered list in chat.
 
-When the rule was selected automatically, or nobody can answer, answer with your recommendations and take the **safer** side: `suggest` over `fix` and the narrower scope. Severity: `error` when the rule has no open hits, because nothing old breaks and agent feedback loops that block only on errors will show it; with open hits, `warning` plus a promotion plan, and say in the report that loops blocking on errors will not show the rule until it is promoted. Step 7 puts these answers to the user.
+When the rule was selected automatically, or nobody can answer, answer with your recommendations and take the **safer** side: `suggest` over `fix` and the narrower scope.
+Severity: always `error`.
+With no open hits the rule goes in the main config, because nothing old breaks; with open hits it goes in the suggestions layer (step 4), so CI stays green while agent feedback loops, which block only on errors, still show it on new code.
+Step 7 puts these answers to the user.
 
 Done when every question has an answer and you know who gave it.
 
@@ -85,6 +89,21 @@ Register the rule in the ESLint config yourself, without asking: it is part of b
 - **Flat config**: reuse the existing local plugin if there is one (an index or `plugins: {local: ...}` entry), otherwise add `plugins: {local: {rules: {'gen-<name>': rule}}}`. Enable `'local/gen-<name>'` at the agreed severity and options, in a config object scoped by the agreed `files`.
 - **Legacy `.eslintrc`**: register it through the project's existing local-rules mechanism (`eslint-plugin-local-rules`, `--rulesdir`). When there is none, the registration would need a new package, so leave the config as it is and put the snippet and its install command in the report.
 
+**Suggestions layer**, for a rule the existing code breaks.
+At `error` in the main config it would fail CI on day one; at `warning` nobody sees it, since feedback loops block only on errors.
+So it goes into a second config at `error` and stays out of the main one:
+- **Flat config**: `eslint.config.suggestions.mjs` beside the main config, importing it and adding one object with the suggestion rules, scoped by their `files`:
+  ```js
+  import base from './eslint.config.mjs';
+  export default [...base, { name: 'suggestions', files: ['src/**/*.ts'], rules: { 'local/gen-<name>': 'error' } }];
+  ```
+  Spread the main config the way its export is built (an array, `defineConfig(...)`, `tseslint.config(...)`), and register the local plugin in the main config, so it is defined once.
+- **Legacy `.eslintrc`**: `.eslintrc.suggestions.cjs` holding only the suggestion rules; `eslint -c .eslintrc.suggestions.cjs` merges it over the project's own config.
+- When the project already has a second config that extends the main one for this purpose (stricter, "suggestions", "next"), add the rules there instead of creating another.
+- Anyone working on a file, and a feedback loop, runs `npx --no-install eslint -c <suggestions config> <files>`; CI keeps running the main config.
+  `package.json` stays byte-identical, so propose a `lint:suggestions` script in the report.
+- When a rule's open hits reach 0, move it to the main config and out of the suggestions config.
+
 ## 5. Verify
 
 1. Run the rule's tests until they pass.
@@ -93,13 +112,15 @@ Register the rule in the ESLint config yourself, without asking: it is part of b
    node <skill-dir>/scripts/try-rule.mjs <rules-dir>/gen-<name>.js [paths...] [--options '<json>'] [--fix-dry-run]
    ```
 3. Account for every hit: each one is a violation under the agreed boundary. A false positive becomes a `valid` test and a rule fix, then a rerun. Report any file type the "Parsers" line lists as skipped or only partly checked.
-4. Run the project's own ESLint on one flagged file, to confirm the config loads and reports `local/gen-<name>`.
+4. Run the project's own ESLint on one flagged file, to confirm the config loads and reports `local/gen-<name>`; for a suggestion rule, run it with `-c <suggestions config>`, and run the main config once more to confirm it reports nothing new.
 
 Done when the tests pass, every hit is accounted for, and the project's ESLint reports the rule.
 
 ## 6. Offer the agent-doc cleanup
 
 Only for a rule built or enabled in this run and verified (a custom rule through step 5, a config change through the project's own ESLint run), and only for the agent-doc lines that state the convention it now enforces.
+A rule in the suggestions layer counts: a feedback loop that runs the suggestions config shows it on every changed line.
+Without such a loop, say in the question that only people who run the suggestions config see it.
 Ask one `AskUserQuestion` per rule, quoting each line with its file and line number:
 - **Delete the line**: recommended when the fix is local and mechanical, so the rule's message alone tells an agent what to do.
 - **Shorten it to a pointer**, such as `Data fetching: hooks only (enforced by local/gen-<name>).`: recommended when the convention shapes code before it is written, so an agent that never saw it would build the wrong thing and redo it.
@@ -118,6 +139,7 @@ Done when every covered line is answered or listed.
 Keep it short:
 - each rule, with its hit count and a few hits
 - the config change, as a short diff
+- the suggestions layer, when there is one: its rules with their open hits, the command to run it, the proposed `lint:suggestions` script, and that each rule moves to the main config once its hits reach 0
 - any install or parser command
 - the agent-doc lines deleted, shortened or kept, with the doc tokens removed (characters / 4), split into always-loaded and on-demand lines, since only always-loaded lines cost tokens in every session
 - the bigger saving is usually not the doc tokens but the fix rounds a rule avoids: say so instead of presenting the character count as the benefit

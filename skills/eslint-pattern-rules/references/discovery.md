@@ -68,7 +68,7 @@ Done when every general rule is a candidate, already covered, or reported as nee
 - `medium`: needs scope resolution, path or alias options, or `suggest` fixes, or has an 80-90% majority.
 - `high`: needs type info or cross-file knowledge, would autofix code whose behavior could change, has under an 80% majority (a team decision, not a discovery), or flags more than 20 files.
 
-A `documented, not enforced` candidate with a large legacy count is not `high` for its majority alone, because the team already decided: offer it at `warn`, or for new code only (a baseline, or an architecture test on changed files).
+A `documented, not enforced` candidate with a large legacy count is not `high` for its majority alone, because the team already decided: offer it for new code only: the suggestions layer (SKILL.md step 4), a baseline, or an architecture test on changed files.
 
 For each candidate, also note: one sentence on why it matters in project terms, the evidence, the flagged-file count, the ADR or agent-doc lines if any, and whether a built-in rule expresses it (then the candidate gets that rule's config instead of a custom rule).
 

@@ -148,6 +148,7 @@ This skill writes them down in the one place they can't be ignored.
 4. **Asks you the design questions**: boundary, scope, options, autofix, severity.
    Each comes with a recommended answer and a real example from your code.
 5. **Writes the rule and its test**, and registers the rule in your ESLint config.
+   A rule your existing code breaks goes into a suggestions config (`eslint.config.suggestions.mjs`) instead, so CI stays green while new code is still checked.
 6. **Verifies** the rule: its tests pass, every hit it reports on your real code is accounted for, and your own ESLint picks it up.
 7. **Offers to clean up your agent docs**: for each line the new rule now enforces, you choose to delete it, shorten it to a pointer, or keep it.
    Fewer prose rules means less context every agent session has to read.
