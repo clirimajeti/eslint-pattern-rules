@@ -1,8 +1,19 @@
 # Discovery
 
 The candidate branch of [`eslint-pattern-rules`](../SKILL.md): the user asked which conventions or rules the project could add.
-Work the five steps in order.
-The scan finds conventions in the code, the decision records and the agent docs, the general list adds well-known rules the project lacks, the coverage map keeps you from proposing what is already enforced, and the config decides what is built without asking.
+Ask the mode question, then work the five steps in order.
+The scan finds conventions in the code, the decision records and the agent docs, the general list adds well-known rules the project lacks, the coverage map keeps you from proposing what is already enforced, and the mode decides what is built without asking.
+
+## 0. Mode
+
+Before the scan, ask one single-select `AskUserQuestion` (header `Mode`):
+- **Automatic (Recommended)**: build every recommended candidate (step 5) without asking.
+  Ask only at the critical points: a change to an agent doc or decision record, a contradiction between doc and code, and a `high` risk candidate.
+- **Manual**: pick the rules yourself from one selection with the recommended ones marked.
+
+Skip the question when the user already said which mode, or when a manager skill such as `codemyrules` asked it and hands the answer on.
+When the user said to go ahead with your recommendations, that is automatic.
+With nobody to answer and no such word, use manual and build nothing that needs a pick.
 
 ## 1. Map what is already enforced
 
@@ -74,37 +85,28 @@ For each candidate, also note: one sentence on why it matters in project terms, 
 
 ## 5. Select
 
-Read `config.json` beside `SKILL.md`.
-A `.eslint-pattern-rules.json` at the project root overrides its keys.
+Put every candidate into one list: project candidates, `built, not enabled`, `switched off` and general ones together, never split by family (no separate call for general, bug-prevention or style rules).
+Order it by coverage (`documented, not enforced` and `built, not enabled` first), then always-loaded agent-doc lines before on-demand ones, then by risk, then by fewest flagged files; general and `switched off` candidates after the project ones.
 
-```json
-{ "mode": "ask", "auto": { "maxRisk": "low", "maxFlaggedFiles": 3, "adrBacked": "ask" } }
-```
+**Recommended** is every candidate whose risk is below `high`, except `switched off` ones (someone decided against them) and general ones with no hits and no tool the project already runs for them.
+`covered` candidates appear only as notes, and `contradicted` ones only as their question.
 
-- `mode`: `"ask"` (the default) puts every candidate to the user.
-  `"auto"` is an opt-in that builds candidates within the `auto` limits without asking.
-- `auto.maxRisk`: the highest risk built without asking, `"low"` or `"medium"`.
-  A `high` candidate always goes to the user.
-- `auto.maxFlaggedFiles`: the most files a rule may report on day one and still be built without asking.
-- `auto.adrBacked`: `"ask"` (the default) treats `documented, not enforced` candidates like the rest.
-  The opt-in `"auto"` builds them without asking in either mode when their risk is below `high`.
+**Automatic mode:**
+- Build every recommended candidate without asking, and name each in one line with its reason ("low risk, 1 file").
+- Ask in one `AskUserQuestion` call, and only when there is something to ask: each contradiction as a single-select ("update the doc to match the code" or "enforce the doc"), and the `high` risk candidates as one multi-select ("These rules are high risk, which should I build?").
+- Everything not recommended and not asked goes to the report as not built.
 
-Split the candidates:
-- **Automatic**: only with an opt-in above, those the config allows.
-  Name them to the user in one line, with the reason ("auto: low risk, 1 file").
-- **Offered**: the remaining candidates from the project itself.
-  Present them with `AskUserQuestion`, `multiSelect: true`, up to 4 options per question and 4 questions per call.
-  Each option's label is the rule name.
-  Its description is the why-sentence plus the flagged files and the risk.
+**Manual mode:**
+- One `AskUserQuestion` call with every candidate, `multiSelect: true`, up to 4 options per question and 4 questions per call.
+  Each option's label is the rule name, with `(Recommended)` at the end for a recommended one.
+  Its description is the why-sentence plus the flagged files and the risk; a general rule also names its standard value.
   A built-in config candidate is labelled by the rule plus its purpose, such as `no-restricted-imports: toasts only via useToast`.
-  Each question stands on its own ("Which of these rules should I generate?").
-  Order them by coverage (`documented, not enforced` and `built, not enabled` first), then always-loaded agent-doc lines before on-demand ones, then by risk, then by fewest flagged files.
-  Offer at most 16 in one call, and list the rest in the report.
-- **Contradictions**: one single-select question each, with "update the doc to match the code" and "enforce the doc" as the options.
-- **General**: every `general, not used` candidate, always offered and never built automatically, in a separate call of its own questions ("Which of these rules your project doesn't use yet should I add?").
-  Each option names the rule, its standard value and its hit count.
-- Without the tool, list the candidates in chat and ask for names.
-  Build nothing until the user answers, unless the user said to go ahead without them: then build the automatic set, or the single strongest project candidate when that set is empty, and never a general one.
+  Each question stands on its own ("Which of these rules should I build?").
+- Contradictions are single-select questions in the same call, ahead of the rest.
+- Past 16 options in one call, offer the recommended ones first and list the rest in the report.
+
+Without the tool, list the candidates in chat, recommended ones marked, and ask for names.
+In manual mode, build nothing until the user answers.
 
 A picked general or `built, not enabled` rule is a config change: enable it in the ESLint config at the agreed value and severity, scoped by `files`, then verify it with the project's own ESLint run.
 

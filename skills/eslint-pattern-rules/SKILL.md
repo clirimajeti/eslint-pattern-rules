@@ -30,7 +30,7 @@ Done when you can state each of these in one line.
 
 - **The user named one:** find 2-3 real examples of it and every violation. They become the test cases.
   Note every agent-doc line that states the same convention, for step 6.
-- **The user wants candidates:** read [`references/discovery.md`](references/discovery.md) and follow it. It covers the scan of code, decision records and agent docs, the general rules from [`references/general-rules.md`](references/general-rules.md), what is already enforced, risk, the opt-in auto mode, and the selection dialog.
+- **The user wants candidates:** read [`references/discovery.md`](references/discovery.md) and follow it. It covers the scan of code, decision records and agent docs, the general rules from [`references/general-rules.md`](references/general-rules.md), what is already enforced, risk, the mode question (automatic or manual), and the selection dialog.
 
 A built-in rule wins when it can express the convention (`no-restricted-syntax`, `no-restricted-imports`, `max-params`, or a rule from an installed plugin). Offer its exact config as the candidate. Once picked, add it to the ESLint config, scoped by `files`, and verify it with the project's own ESLint run instead of steps 4 and 5. A custom rule earns its place when the logic needs scope, paths, options, a tailored message or a fix.
 
@@ -121,7 +121,9 @@ Done when the tests pass, every hit is accounted for, and the project's ESLint r
 Only for a rule built or enabled in this run and verified (a custom rule through step 5, a config change through the project's own ESLint run), and only for the agent-doc lines that state the convention it now enforces.
 A rule in the suggestions layer counts: a feedback loop that runs the suggestions config shows it on every changed line.
 Without such a loop, say in the question that only people who run the suggestions config see it.
-Ask one `AskUserQuestion` per rule, quoting each line with its file and line number:
+The cleanup always asks, in both modes: it changes a doc.
+In manual mode, ask one `AskUserQuestion` per rule; in automatic mode, ask the lines of every built rule in one call after the builds.
+Quote each line with its file and line number:
 - **Delete the line**: recommended when the fix is local and mechanical, so the rule's message alone tells an agent what to do.
 - **Shorten it to a pointer**, such as `Data fetching: hooks only (enforced by local/gen-<name>).`: recommended when the convention shapes code before it is written, so an agent that never saw it would build the wrong thing and redo it.
   The pointer goes where the agent will load it: a `CLAUDE.md` in the folder the rule applies to, or an instructions file with an `applyTo` glob for those paths.
