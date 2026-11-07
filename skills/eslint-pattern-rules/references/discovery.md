@@ -36,7 +36,7 @@ A type-aware rule (typescript-eslint `recommendedTypeChecked` rules and the like
    List the project's own wrappers (exported helpers in `lib/`, `utils/`, `shared/`, `services/`) and count the code that goes around them: `crypto.randomUUID()` beside a `newId()` helper, a raw `fetch` beside the shared client.
    A wrapper most code uses is a convention; each bypass is a violation.
 3. **Read the decision records** for conventions they ask for.
-4. **Read the agent docs** (the list in SKILL.md step 1), plus the docs they link to or import (`@file` lines, Markdown links to repo files), one level deep, for rule-like lines: "always", "never", "must", "don't", "use X instead of Y", "X goes through Y".
+4. **Read the agent docs** (the list in SKILL.md step 1), plus the docs they link to or import (`@file` lines, Markdown links to repo files), and the docs those link to in turn (an `index.md` that links one file per decision or trap), each file once, for rule-like lines: "always", "never", "must", "don't", "use X instead of Y", "X goes through Y".
    Keep each line's file and line number, so step 6 of SKILL.md can offer to clean it up once a rule enforces it.
    Mark each line **always loaded** (a root `CLAUDE.md`, `AGENTS.md` or `GEMINI.md`, the files those import with `@file`, `.github/copilot-instructions.md`) or **on demand** (linked files, folder-level `CLAUDE.md`, instructions with an `applyTo` glob).
    Always-loaded lines cost tokens in every session; on-demand lines mostly gain enforcement.
