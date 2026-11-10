@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: builtin-message-react
+expected_outcome: |
+  ADR 0007 enforced through ESLint's built-in restricted rules in eslint.config.js (no custom rule), every entry with a message that names ADR 0007 and says to use readSetting/writeSetting from src/shared/storage.ts, flagging CartBadge.tsx and theme.ts and not storage.ts, with package.json and CLAUDE.md unchanged.
+context:
+  scaffold_script: place-files.sh

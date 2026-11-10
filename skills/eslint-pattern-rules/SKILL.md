@@ -1,6 +1,10 @@
 ---
 name: eslint-pattern-rules
-description: Turn a codebase's own conventions into custom ESLint rules with RuleTester tests, and suggest well-known ESLint rules it is missing. Use when the user wants a custom ESLint rule or local plugin, asks which of their patterns, ADRs or CLAUDE.md / AGENTS.md instructions could become lint rules, asks which clean-code, bug-prevention, security or test rules the project lacks, or wants to enforce a convention the code mostly follows.
+description: Turn a codebase's own conventions into custom ESLint rules with RuleTester tests, and suggest well-known ESLint rules it is missing. Use when the user wants a custom ESLint rule or local plugin, asks which of their patterns, ADRs or CLAUDE.md / AGENTS.md instructions could become lint rules, asks which clean-code, bug-prevention, security or test rules the project lacks, or wants to enforce a convention the code mostly follows. Not for fixing existing ESLint errors; for backend languages use backend-pattern-rules instead.
+version: "0.2.0"
+metadata:
+  author: clirimajeti <clirimajeti@gmail.com>
+  tags: [eslint, lint, custom-rules, code-quality]
 ---
 
 # ESLint Pattern Rules
@@ -33,6 +37,7 @@ Done when you can state each of these in one line.
 - **The user wants candidates:** read [`references/discovery.md`](references/discovery.md) and follow it. It covers the scan of code, decision records and agent docs, the general rules from [`references/general-rules.md`](references/general-rules.md), what is already enforced, risk, the mode question (automatic or manual), and the selection dialog.
 
 A built-in rule wins when it can express the convention (`no-restricted-syntax`, `no-restricted-imports`, `max-params`, or a rule from an installed plugin). Offer its exact config as the candidate. Once picked, add it to the ESLint config, scoped by `files`, and verify it with the project's own ESLint run instead of steps 4 and 5. A custom rule earns its place when the logic needs scope, paths, options, a tailored message or a fix.
+A built-in rule carries its message in its config: give every `no-restricted-syntax`, `no-restricted-imports`, `no-restricted-globals` and `no-restricted-properties` entry a `message` as step 3 describes, because the default message only names the selector, the import or the name, and check that the project's ESLint run shows it.
 
 Done when every convention you will build has its good examples and its full violation list.
 
@@ -44,6 +49,7 @@ For each rule, work through these, skipping whatever the code already answers:
 - **Options**: only the knobs needed today. Each one gets a JSON `schema` and a default that fits the project, such as aliases read from `tsconfig.json`.
 - **Fix**: `fix` when behavior is provably unchanged, `suggest` when a human should confirm, none otherwise.
 - **Message, type, severity, name** (`gen-<name>`).
+  The message says what is wrong, what to write instead, and where the rule comes from (`ADR 0043`, or the agent doc it replaces), in one sentence: once its agent-doc line is gone, the message is all an agent sees.
 - **Layer**: the main config, or the suggestions layer (step 4) when the existing code breaks the rule.
 
 Ask with `AskUserQuestion`, in rounds of up to 4 questions whose prerequisites are settled. Put your recommended answer first and label it "(Recommended)". Show a real code example in the question or in an option's `preview`. Without the tool, ask the same rounds as a numbered list in chat.
@@ -114,7 +120,7 @@ So it goes into a second config at `error` and stays out of the main one:
 3. Account for every hit: each one is a violation under the agreed boundary. A false positive becomes a `valid` test and a rule fix, then a rerun. Report any file type the "Parsers" line lists as skipped or only partly checked.
 4. Run the project's own ESLint on one flagged file, to confirm the config loads and reports `local/gen-<name>`; for a suggestion rule, run it with `-c <suggestions config>`, and run the main config once more to confirm it reports nothing new.
 
-Done when the tests pass, every hit is accounted for, and the project's ESLint reports the rule.
+Done when the tests pass, every hit is accounted for, the project's ESLint reports the rule, and its message names its source.
 
 ## 6. Offer the agent-doc cleanup
 
@@ -131,6 +137,7 @@ Quote each line with its file and line number:
 - **Keep it as it is.**
 
 Before recommending a delete, make sure the rule's message carries what the line said, plus the ADR link if there is one.
+A built-in rule whose tool has no message field, or whose message does not carry the line, never gets the delete option: offer the pointer or keep.
 Edit the doc only as answered, and never touch a line no verified rule covers.
 With nobody to answer, change no doc and list the lines in the report.
 
