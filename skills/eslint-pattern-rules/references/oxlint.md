@@ -22,7 +22,9 @@ A `.vue` file's script block is linted; its template is not.
 
 ## Built-in rules (step 2)
 
-- Native rules are listed by `node_modules/.bin/oxlint --rules -f json` (`scope`, `value`, `type_aware`); enable one as `<scope>/<value>` in `rules`, for example `eslint/no-console`, `typescript/no-explicit-any`, `react/...`.
+- Native rules are listed by `node_modules/.bin/oxlint --rules -f json` (`scope`, `value`, `type_aware`).
+- Name every rule as oxlint prints it in its `code`, `plugin(rule)` turned into `plugin/rule`: `eslint/no-console`, `typescript/no-explicit-any`, `jsx-a11y/alt-text`, `next/no-img-element`.
+  The `--rules` scope is not always that name (`jsx_a11y`, `nextjs`, `react_perf`), and the loop's baseline keys rules by the printed name, so use it in the config, the report and the baseline alike.
 - A `type_aware` rule runs only when the lint script passes `--type-aware`.
 - `no-restricted-imports`, `no-restricted-globals` and `no-restricted-properties` exist and carry a `message` per entry.
 - There is no `no-restricted-syntax`: a convention that needs a selector becomes a custom rule.

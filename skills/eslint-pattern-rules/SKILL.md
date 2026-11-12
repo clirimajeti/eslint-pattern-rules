@@ -66,7 +66,7 @@ Done when every question has an answer and you know who gave it.
 
 ## 4. Write the rule and its tests
 
-Under oxlint, the folder, registration, suggestions layer and tests follow [`references/oxlint.md`](references/oxlint.md); the rule object and its gotchas below stay the same.
+Under oxlint, the folder, registration, suggestions layer and tests follow [`references/oxlint.md`](references/oxlint.md), and nothing is installed: the `package.json` rules below about installing ESLint or parsers are for the ESLint path only. The rule object and its gotchas below stay the same.
 Each rule is exactly two files, both prefixed `gen-` so generated rules stay distinct from hand-written ones:
 
 ```

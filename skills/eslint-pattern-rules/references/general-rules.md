@@ -3,7 +3,7 @@
 Well-known rules worth suggesting when a project does not use them yet, whatever its code mostly does today.
 Almost all of them already exist in ESLint core or in a plugin the project may have, so a suggestion is usually a config entry, not a custom rule.
 A rule from a plugin the project does not have is never installed: it goes into the report as an option, with its install command.
-Under oxlint, a rule is suggested only when `oxlint --rules -f json` lists it, by its oxlint name (`<scope>/<value>`), and counted as [`oxlint.md`](oxlint.md) describes; the ESLint commands below do not apply.
+Under oxlint, a rule is suggested only when `oxlint --rules -f json` lists it, by the name oxlint prints for it (see [`oxlint.md`](oxlint.md)), and counted as [`oxlint.md`](oxlint.md) describes; the ESLint commands below do not apply.
 
 Count today's hits without touching the config, in **one** ESLint run with every candidate rule as a `--rule` override (each run lints the whole tree, so one run per rule multiplies the time):
 
