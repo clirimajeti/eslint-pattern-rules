@@ -1,6 +1,6 @@
 {
   "name": "eslint-pattern-rules",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Turn a codebase's own conventions into custom ESLint rules with RuleTester tests. Framework-agnostic, asks automatic or manual first.",
   "author": {
     "name": "clirimajeti",
