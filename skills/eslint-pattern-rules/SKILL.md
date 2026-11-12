@@ -1,6 +1,6 @@
 ---
 name: eslint-pattern-rules
-description: Turn a codebase's own conventions into custom ESLint rules with RuleTester tests, and suggest well-known ESLint rules it is missing. Use when the user wants a custom ESLint rule or local plugin, asks which of their patterns, ADRs or CLAUDE.md / AGENTS.md instructions could become lint rules, asks which clean-code, bug-prevention, security or test rules the project lacks, or wants to enforce a convention the code mostly follows. Not for fixing existing ESLint errors; for backend languages use backend-pattern-rules instead.
+description: Turn a codebase's own conventions into custom ESLint or oxlint rules with RuleTester tests, and suggest well-known lint rules it is missing. Use when the user wants a custom ESLint or oxlint rule or local plugin, asks which of their patterns, ADRs or CLAUDE.md / AGENTS.md instructions could become lint rules, asks which clean-code, bug-prevention, security or test rules the project lacks, or wants to enforce a convention the code mostly follows. Not for fixing existing lint errors; for backend languages use backend-pattern-rules instead.
 version: "0.2.0"
 metadata:
   author: clirimajeti <clirimajeti@gmail.com>
@@ -19,6 +19,8 @@ Count and locate with `rg -c` / `rg -n`, always with a path (in scripts, `rg` wi
 ## 1. Detect the setup
 
 Look each of these up rather than asking:
+- **Linter**: ESLint (`eslint.config.*`, `.eslintrc*`) or oxlint (`.oxlintrc.json`, `.oxlintrc.jsonc`, `oxlint.config.ts`, `oxlint` in the lint script).
+  oxlint without ESLint: read [`references/oxlint.md`](references/oxlint.md) now and apply its differences in steps 2, 4 and 5; with ESLint at all, follow this file as written.
 - **ESLint version**: `node -p "require('eslint/package.json').version"`. v9+ uses the flat APIs, v8 the legacy ones.
   When `node_modules` is missing, ask before installing dependencies (`npm ci --ignore-scripts` with a lockfile, `npm install --ignore-scripts --no-package-lock` without one, both git-ignored); without them, report every count that needs ESLint as "not counted".
 - **Config file**, **module format**, **installed parsers**, `tsconfig.json` `paths`, and **test runner**.
@@ -36,6 +38,7 @@ Done when you can state each of these in one line.
   Note every agent-doc line that states the same convention, for step 6.
 - **The user wants candidates:** read [`references/discovery.md`](references/discovery.md) and follow it. It covers the scan of code, decision records and agent docs, the general rules from [`references/general-rules.md`](references/general-rules.md), what is already enforced, risk, the mode question (automatic or manual), and the selection dialog.
 
+Under oxlint, built-in rules and their counting follow [`references/oxlint.md`](references/oxlint.md).
 A built-in rule wins when it can express the convention (`no-restricted-syntax`, `no-restricted-imports`, `max-params`, or a rule from an installed plugin). Offer its exact config as the candidate. Once picked, add it to the ESLint config, scoped by `files`, and verify it with the project's own ESLint run instead of steps 4 and 5. A custom rule earns its place when the logic needs scope, paths, options, a tailored message or a fix.
 A built-in rule carries its message in its config: give every `no-restricted-syntax`, `no-restricted-imports`, `no-restricted-globals` and `no-restricted-properties` entry a `message` as step 3 describes, because the default message only names the selector, the import or the name, and check that the project's ESLint run shows it.
 
@@ -63,6 +66,7 @@ Done when every question has an answer and you know who gave it.
 
 ## 4. Write the rule and its tests
 
+Under oxlint, the folder, registration, suggestions layer and tests follow [`references/oxlint.md`](references/oxlint.md); the rule object and its gotchas below stay the same.
 Each rule is exactly two files, both prefixed `gen-` so generated rules stay distinct from hand-written ones:
 
 ```
@@ -111,6 +115,8 @@ So it goes into a second config at `error` and stays out of the main one:
 - When a rule's open hits reach 0, move it to the main config and out of the suggestions config.
 
 ## 5. Verify
+
+Under oxlint, use `try-oxlint.mjs` and the project's oxlint as [`references/oxlint.md`](references/oxlint.md) describes.
 
 1. Run the rule's tests until they pass.
 2. From the project root, run the rule over the real code:

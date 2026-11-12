@@ -43,7 +43,7 @@ A type-aware rule (typescript-eslint `recommendedTypeChecked` rules and the like
    A line that applies only to another part of the stack (backend lines in a frontend run) is out of scope.
    A line a lint rule can check is a candidate.
    A line about process, tone or tools ("run the tests before committing") is not.
-5. **Count suppression comments per rule** (`eslint-disable`, `@ts-expect-error`, `@Suppress`, `# noqa`, `ast-grep-ignore`, `//nolint`). Three or more for one rule mean the config fights the code: a `contradicted` candidate with "relax the rule here" or "fix the code" as the options.
+5. **Count suppression comments per rule** (`eslint-disable`, `oxlint-disable`, `@ts-expect-error`, `@Suppress`, `# noqa`, `ast-grep-ignore`, `//nolint`). Three or more for one rule mean the config fights the code: a `contradicted` candidate with "relax the rule here" or "fix the code" as the options.
 
 On a large repo, split the scan by top-level folder, with one subagent per folder when serial scanning is too slow.
 Keep a **scan log** (signal, counts, verdict) so the user can tell a quiet codebase from a shallow scan.
