@@ -1,7 +1,7 @@
 ---
 name: eslint-pattern-rules
 description: Turn a codebase's own conventions into custom ESLint or oxlint rules with RuleTester tests, and suggest well-known lint rules it is missing. Use when the user wants a custom ESLint or oxlint rule or local plugin, asks which of their patterns, ADRs or CLAUDE.md / AGENTS.md instructions could become lint rules, asks which clean-code, bug-prevention, security or test rules the project lacks, or wants to enforce a convention the code mostly follows. Not for fixing existing lint errors; for backend languages use backend-pattern-rules instead.
-version: "0.2.0"
+version: "0.3.0"
 metadata:
   author: clirimajeti <clirimajeti@gmail.com>
   tags: [eslint, lint, custom-rules, code-quality]
